@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2022.1.3 (Build 668_0_22997U)" ts="2024-10-15 17:00:59">
+<Class name="User.Chk.IndentCheckerP">
+<Super>%RegisteredObject</Super>
+<TimeChanged>67128,61223.2853354</TimeChanged>
+<TimeCreated>67128,56998.3983744</TimeCreated>
+
+<Method name="UseWrongIndentP">
+<Description><![CDATA[
+ 処理概要   ：インデント不正チェック
+ <br>IN     ：clsDef : クラス定義
+ <br>OUT    ：%Boolean
+ <br>処理詳細：インデントが4の倍数になっているかをチェックをする。]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>clsDef:%Dictionary.ClassDefinition</FormalSpec>
+<Language>python</Language>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	import iris
+	import re
+	
+	print("*インデント不正チェック\n")
+	
+	isCorrect = 1
+	count = clsDef.Methods.Count()
+	for i in range(count):
+	    cnt = 0
+	    method = clsDef.Methods.GetAt(i + 1)
+	    while not method.Implementation.AtEnd:
+	        cnt += 1
+	        line = method.Implementation.ReadLine()
+	        if line == '':
+	            continue
+	        if len(re.compile("^( {4}){1,}[^ ].*").findall(line)) == 0:
+	            isCorrect = 0
+	            print("E: インデントが4の倍数になっていません。: " + method.Name + str(cnt) + str(line) + "\n") 
+	return isCorrect
+]]></Implementation>
+</Method>
+</Class>
+</Export>
