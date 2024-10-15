@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2022.1.3 (Build 668_0_22997U)" ts="2024-10-15 10:47:46">
+<Class name="User.Chk.IndentChecker">
+<Super>%RegisteredObject</Super>
+<TimeChanged>67114,35916.5855877</TimeChanged>
+<TimeCreated>67109,37621.6258248</TimeCreated>
+
+<Method name="UseWrongIndent">
+<Description><![CDATA[
+ 処理概要   ：インデント不正チェック
+ <br>IN     ：clsDef : クラス定義
+ <br>OUT    ：%Boolean
+ <br>処理詳細：インデントが4の倍数になっているかをチェックをする。]]></Description>
+<FormalSpec>clsDef:%Dictionary.ClassDefinition</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    Write "*インデント不正チェック",!
+    Set isCorrect = $$$YES
+    Set count = clsDef.Methods.Count()
+    For i = 1: 1: count {
+        Set cnt = 0
+        Set method = clsDef.Methods.GetAt(i)
+        Do method.Implementation.Rewind()
+
+        While ('method.Implementation.AtEnd) {
+            Set cnt = cnt + 1
+            Set line = method.Implementation.ReadLine()
+            If (line = "") {
+                Continue
+            }
+
+            If ('$MATCH(line, "^( {4}){1,}[^ ].*")) {
+                Set isCorrect = $$$NO
+                Write "E: インデントが4の倍数になっていません。: "_method.Name_"+"_cnt_line,!
+            }
+        }
+    }
+
+    Return isCorrect
+]]></Implementation>
+</Method>
+</Class>
+</Export>

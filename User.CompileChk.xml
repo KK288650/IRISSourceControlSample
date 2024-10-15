@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2022.1.3 (Build 668_0_22997U)" ts="2024-10-15 10:46:36">
+<Class name="User.CompileChk">
+<Super>%Studio.SourceControl.Base</Super>
+<TimeChanged>67113,59710.5097558</TimeChanged>
+<TimeCreated>67107,52923.4457383</TimeCreated>
+
+<Method name="OnBeforeCompile">
+<Description><![CDATA[
+ 処理概要   ：コンパイル前チェック
+ <br>IN     ：InternalName : コンパイル対象クラス
+ <br>OUT    ：%Status
+ <br>処理詳細：規約に則さない実装がされている場合、コンパイルエラーにする。]]></Description>
+<FormalSpec><![CDATA[InternalName:%String,&qstruct:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    Set InternalName = $REPLACE(InternalName, ".CLS", "")
+    Set clsDef = ##Class(%Dictionary.ClassDefinition).%OpenId(InternalName)
+	
+    Set SKIPuFLG = $$$NO
+    Write !,"****************コンパイルチェック開始****************",!
+    Write "TARGET ： "_InternalName,!
+    Set hasErr = 0
+    
+    #; クラス名チェック
+    Set hasErr = hasErr + '##class(User.Chk.ClassNamingChecker).%New().IsCorrectDefine(clsDef)
+    #; インデントチェック
+    Set hasErr = hasErr + '##class(User.Chk.IndentChecker).%New().UseWrongIndent(clsDef)
+    #; 変数の利用チェック
+    Set hasErr = hasErr + '##class(User.Chk.UseValChecker).%New().UseVal(clsDef)
+    #; 引数の利用チェック
+    Set hasErr = hasErr + '##class(User.Chk.UseArgsChecker).%New().UseArgs(clsDef)
+    
+
+    Write "****************コンパイルチェック完了****************",!
+    If (hasErr > 0) {
+        Return $$$ERROR($$$GeneralError, "コンパイルエラーがあります。")
+    } Else {
+        Return $$$OK
+    }
+]]></Implementation>
+</Method>
+</Class>
+</Export>

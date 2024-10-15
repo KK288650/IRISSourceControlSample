@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2022.1.3 (Build 668_0_22997U)" ts="2024-10-15 10:49:30">
+<Class name="User.Chk.UseValChecker">
+<Super>%RegisteredObject</Super>
+<TimeChanged>67115,35975.7722252</TimeChanged>
+<TimeCreated>67113,34147.3134205</TimeCreated>
+
+<Method name="UseVal">
+<Description><![CDATA[
+ 処理概要   ：変数の利用チェック
+ <br>IN     ：clsDef : クラス定義
+ <br>OUT    ：%Boolean
+ <br>処理詳細：定義された変数が利用されているかをチェックをする。]]></Description>
+<FormalSpec>clsDef:%Dictionary.ClassDefinition</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	Write "*変数の利用チェック",!
+    Set isCorrect = $$$YES
+    Set count = clsDef.Methods.Count()
+    For i = 1: 1: count {
+        Set cnt = 0
+        Set method = clsDef.Methods.GetAt(i)
+        Do method.Implementation.Rewind()
+
+        Set args = method.FormalSpec
+        Set argList = {}
+        For j = 1: 1: $LENGTH(args, ",") {
+            Set arg = $REPLACE($REPLACE($REPLACE($PIECE($PIECE(args, ",", j), ":", 1), "&", ""), "*", ""), "...", "")
+            If (arg = "") {
+                Continue
+            }
+            Do argList.%Set(arg, "")
+        }
+
+        Set valList = {}
+        While ('method.Implementation.AtEnd) {
+            Set cnt = cnt + 1
+            Set line = method.Implementation.ReadLine()
+            If (line = "") {
+                Continue
+            }
+            If (..HasComment(line)) {
+                Continue
+            }
+
+            If ($FIND(line, "Set ") > 0) {
+                Set valNm = $PIECE($REPLACE($PIECE($PIECE(line, "Set ", 2), "="), " ", ""), "(")
+                #; オブジェクトへの参照は対象外。
+                If (($FIND(valNm, ".") = 0) && ($FIND(valNm, "$") = 0)) {
+                    #; 変数の定義があればObjectに登録。
+                    If (('valList.%IsDefined(valNm)) && 'argList.%IsDefined(valNm)) {
+                        Do valList.%Set(valNm, $$$NO)
+                    }
+                }
+            }
+
+            Set iter = valList.%GetIterator()
+            While iter.%GetNext(.key, .value) {
+                If ($FIND($REPLACE(line, "Set "_key_" ", ""), key) > 0) {
+                    Do valList.%Set(key, $$$YES)
+                }
+            }
+        }
+        Set iter = valList.%GetIterator()
+        While iter.%GetNext(.key, .value) {
+            If ('value) {
+                Write "E: "_method.Name_"() にて変数"_key_"は定義されていますが、利用されていない可能性があります。",!
+                Set isCorrect = $$$NO
+            }
+        }
+    }
+    Return isCorrect
+]]></Implementation>
+</Method>
+
+<Method name="HasComment">
+<FormalSpec>line:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[    Return ($MATCH(line, "^( )*#;.*") > 0) || ($MATCH(line, "^( )*//.*") > 0)
+]]></Implementation>
+</Method>
+</Class>
+</Export>

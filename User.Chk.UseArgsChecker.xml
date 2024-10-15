@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2022.1.3 (Build 668_0_22997U)" ts="2024-10-15 10:48:02">
+<Class name="User.Chk.UseArgsChecker">
+<Super>%RegisteredObject</Super>
+<TimeChanged>67115,36034.9954584</TimeChanged>
+<TimeCreated>67113,35036.7231907</TimeCreated>
+
+<Method name="UseArgs">
+<Description><![CDATA[
+ 処理概要   ：引数の利用チェック
+ <br>IN     ：clsDef : クラス定義
+ <br>OUT    ：%Boolean
+ <br>処理詳細：引数が利用されているかをチェックする。]]></Description>
+<FormalSpec>clsDef:%Dictionary.ClassDefinition</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	Write "*引数の利用チェック",!
+    Set ngKeyword = $LISTBUILD(")", """", "}")
+
+    Set isCorrect = $$$YES
+    Set count = clsDef.Methods.Count()
+    For i = 1: 1: count {
+        Set method = clsDef.Methods.GetAt(i)
+        Set args = method.FormalSpec
+
+        Do method.Implementation.Rewind()
+        Set str = method.Implementation.Read()
+        For j = 1: 1: $LENGTH(args, ",") {
+            Set arg = $REPLACE($REPLACE($REPLACE($PIECE($PIECE(args, ",", j), ":", 1), "&", ""), "*", ""), "...", "")
+            If (arg = "") {
+                Continue
+            }
+
+            Set isIgnore = $$$NO
+            Set ptr = 0
+            While $LISTNEXT(ngKeyword, ptr, value) {
+                #; NGリストの内容が含まれていると、切り出し対象外。
+                If ($FIND(arg, value) > 0) {
+                    Set isIgnore = $$$YES
+                    Quit
+                }
+            }
+            If (isIgnore) {
+                Continue
+            }
+
+            If ($FIND(str, arg) = 0) {
+                Write "E: 引数が利用されていません。: "_method.Name_"/"_arg,!
+                Set isCorrect = $$$NO
+            }
+        }
+    }
+
+    Return isCorrect
+]]></Implementation>
+</Method>
+</Class>
+</Export>

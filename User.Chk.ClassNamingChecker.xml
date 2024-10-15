@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2022.1.3 (Build 668_0_22997U)" ts="2024-10-15 10:47:36">
+<Class name="User.Chk.ClassNamingChecker">
+<Super>%RegisteredObject</Super>
+<TimeChanged>67114,35035.291475</TimeChanged>
+<TimeCreated>67108,34642.4518365</TimeCreated>
+
+<Method name="IsCorrectDefine">
+<Description><![CDATA[
+ 処理概要   ：クラス定義の命名規約違反チェック
+ <br>IN     ：clsDef : クラス定義
+ <br>OUT    ：%Boolean
+ <br>処理詳細：クラスの命名がコーディング規約に従っているかどうかをチェックする。]]></Description>
+<FormalSpec>clsDef:%Dictionary.ClassDefinition</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    Write "*クラス名チェック",!
+
+    Set ret = $$$YES
+    If (clsDef '= "") {
+        Set clsName = clsDef.Name
+        Set ret = ..WriteStartWithStrErr(clsName)
+    }
+
+    Return ret
+]]></Implementation>
+</Method>
+
+<Method name="WriteStartWithStrErr">
+<Description><![CDATA[
+ 処理概要   ：命名先頭不正のエラー表示
+ <br>IN     ：clsName クラス名/ keyword キーワード
+ <br>OUT    ：%Boolean
+ <br>処理詳細：クラス名の先頭がキーワードで開始していなければエラーを表示する。]]></Description>
+<FormalSpec>clsName:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    If ($FIND(clsName, ".XXXX") > 0) {
+        #; OK
+        Return $$$YES
+    } Else {
+        Write "E: クラス名はXXXXという単語で始まる必要があります。",!
+        Return $$$NO
+    }
+]]></Implementation>
+</Method>
+</Class>
+</Export>
